@@ -83,3 +83,30 @@ class VaultDB:
     def close(self) -> None:
         """Close the database connection."""
         self.connection.close()
+
+
+    def update_credential(self, id: int, site: str, username: str, password: str, notes: str = "") -> bool:
+        """
+        Update an existing credential by ID.
+        Returns True if a record was updated, False if ID not found.
+        """
+        encrypted = self.crypto.encrypt(password)
+        query = """
+            UPDATE credentials
+            SET site=?, username=?, password_encrypted=?, notes=?
+            WHERE id=?
+        """
+        cursor = self.connection.execute(query, (site, username, encrypted, notes, id))
+        self.connection.commit()
+        return cursor.rowcount > 0
+
+    def delete_credential(self, id: int) -> bool:
+        """
+        Delete a credential by ID.
+        Returns True if a record was deleted, False if ID not found.
+        """
+        cursor = self.connection.execute(
+            "DELETE FROM credentials WHERE id=?", (id,)
+        )
+        self.connection.commit()
+        return cursor.rowcount > 0

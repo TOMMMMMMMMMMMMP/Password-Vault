@@ -58,6 +58,34 @@ def test_password_is_encrypted():
     print("test_password_is_encrypted ✔")
 
 
+def test_update():
+    setup()
+    db = VaultDB()
+    db.add_credential("github.com", "tom", "OldPass")
+    creds = db.get_all_credentials()
+    cred_id = creds[0].id
+    result = db.update_credential(cred_id, "github.com", "tom", "NewPass", "updated")
+    assert result is True
+    updated = db.get_all_credentials()
+    assert updated[0].password == "NewPass"
+    assert updated[0].notes == "updated"
+    db.close()
+    print("test_update ✔")
+
+
+def test_delete():
+    setup()
+    db = VaultDB()
+    db.add_credential("github.com", "tom", "pass")
+    creds = db.get_all_credentials()
+    cred_id = creds[0].id
+    result = db.delete_credential(cred_id)
+    assert result is True
+    assert len(db.get_all_credentials()) == 0
+    assert db.delete_credential(999) is False
+    db.close()
+    print("test_delete ✔")
+
 if __name__ == "__main__":
     teardown()
     test_add_and_get()
@@ -65,5 +93,9 @@ if __name__ == "__main__":
     test_search()
     teardown()
     test_password_is_encrypted()
+    teardown()
+    test_update()
+    teardown()
+    test_delete()
     teardown()
     print("\nAll tests passed ✔")
